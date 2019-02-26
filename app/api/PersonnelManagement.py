@@ -1,6 +1,7 @@
 import os
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, Response
 from werkzeug import secure_filename
+import json
 
 UPLOAD_FOLDER = '/root/src/test/img'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -27,9 +28,16 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return '''redirect(url_for('uploaded_file',
-                                    filename=filename))
-                                    '''
+
+            t = {
+                'IsSuccess' : True,
+                'Count' : 2
+            }
+
+            return Response(json.dumps(t),mimetype='application/json')
+            # return '''redirect(url_for('uploaded_file',
+                                    # filename=filename))
+                                    # '''
     return '''
     <!doctype html>
     <title>Upload new File</title>
