@@ -13,7 +13,7 @@ then
     # python manage.py db upgrade
     export PORT=${PORT:-8080}
     echo "[LOG] Starting docker on port ${PORT}"
-    docker -b 0.0.0.0:${PORT} app:app -w 1 --enable-stdio-inheritance --log-level "warning" --proxy-protocol
+    gunicorn -b 0.0.0.0:${PORT} app:app -w 1 --enable-stdio-inheritance --log-level "warning" --proxy-protocol
 fi
 if [ "$DEPLOYMENT" == "celery" ]
 then
