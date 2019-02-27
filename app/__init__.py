@@ -2,6 +2,11 @@ from flask import Flask
 
 app = Flask(__name__)
 
-from app import routes
+from multiprocessing import Queue
+
+InfoQueue = Queue()
+MessageQueue = Queue()
+FrameQueue = Queue()
+#from app import routes
 
 #app.run()

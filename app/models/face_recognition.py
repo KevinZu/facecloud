@@ -42,10 +42,13 @@ from sklearn import metrics
 from scipy.optimize import brentq
 from scipy import interpolate
 import scipy.misc
-from multiprocessing import Process, Queue
+from multiprocessing import Process #, Queue
+from app import InfoQueue, MessageQueue, FrameQueue
 import glob
 import time
 import dlib
+from app.models import processes
+from functools import wraps
 
 
 image_extension = ".png"
@@ -64,13 +67,14 @@ print(src_path)
 temporary_dir = os.path.join(src_path,"data")
 print(temporary_dir)
 
+"""
 InfoQueue = Queue()
 MessageQueue = Queue()
 FrameQueue = Queue()
-
+"""
 
 def process_start():
-    processes = []
+    # processes = []
 
     p = Process(target=PersonCompare, args=(InfoQueue,MessageQueue,))
     p.start()
@@ -80,6 +84,7 @@ def process_start():
     p.start()
     processes.append(p)
 
+    """
     process_flag = False
     cv2.namedWindow(window_name)
  
@@ -117,15 +122,53 @@ def process_start():
         if c & 0xFF == ord('s'):
             process_flag = False
 
+    #释放摄像头并销毁所有窗口
+    cap.release()
+    cv2.destroyAllWindows() 
+    """
 
+    #for p in processes:
+        #p.join() 
+
+
+def CaptureFrame(func,personId):
+    process_flag = True
+    cv2.namedWindow(window_name)
+ 
+    #视频来源，可以来自一段已存好的视频，也可以直接来自USB摄像头
+    cap = cv2.VideoCapture(videoName)      
+    n = 1
+    while cap.isOpened():
+        ok, frame = cap.read() #读取一帧数据
+        if not ok:            
+            break                    
+ 
+        #显示图像并等待10毫秒按键输入，输入‘q’退出程序
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL) #cv2.WND_PROP_FULLSCREEN)
+        #cv2.moveWindow(window_name, screen.x - 1, screen.y - 1)
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
+                          cv2.WINDOW_FULLSCREEN)
+        n = n + 1
+        if n == 50:
+            if process_flag == True:
+                file_name = personId + '.jpg'
+                cv2.imwrite(file_name, frame)
+                file = open(file_name,'rb')
+                ret = func(file)
+                if ret:
+                    if os.path.exists(file_name):
+                        os.remove(file_name)
+                    break
+            n = 1
+            
+        else:
+            frameresize = cv2.resize(frame,(1280,800))
+            cv2.imshow(window_name, frameresize)
  
     #释放摄像头并销毁所有窗口
     cap.release()
     cv2.destroyAllWindows() 
 
-    for p in processes:
-        p.join()
-    
 
 
 add = 0
